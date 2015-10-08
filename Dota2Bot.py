@@ -2,48 +2,44 @@
 
 import threading
 import time
+import pytz
+
+import dotamatch
+from dotamatch import MatchHistory
+from dotamatch import MatchDetails
+from dotamatch import Heroes
+from dotamatch import PlayerSummaries
+
+from config import Config
 from datetime import datetime
 from datetime import timedelta
 
 from tinydb import TinyDB
 from tinydb import where
-import pytz
-
-from dotamatch import *
-import dotamatch
-
 
 class D2WBot(object):
     def __init__(self):
         self.sentCache = {}
         self.checkingThread = threading.Thread(target = self.startThread)
         self.checkingThread.daemon = True
+        self.config = Config()
 
-        #Debug purposes
-        self.printOutput = True
+        # Debug purposes
+        self.printOutput = False
 
         # Initializing the API
-        key = get_key()  # Steam Dev Key (~/.steamapi)
+        key = dotamatch.get_key()  # Steam Dev Key (~/.steamapi)
         try:
             self.match_history = MatchHistory(key)
             self.match_details = MatchDetails(key)
             self.account_details = PlayerSummaries(key)
             self.heroes = Heroes(key).heroes()
+
             # ActualDB
-            # Th3 Guyz
-            self.test = []
-            with open(os.path.expanduser("~/.testaccounts")) as f:
-                for i in f.readlines():
-                    self.test.append(int(i.rstrip("\n")))
+            db = TinyDB(self.config.db_path)
+            #db.purge()
+            #db.purge_tables()
 
-            self.groups = []
-            with open(os.path.expanduser("~/.groups")) as f:
-                for i in f.readlines():
-                    self.groups.append(i.rstrip("\n"))
-
-            db = TinyDB('db.json')
-            db.purge()
-            db.purge_tables()
             self.matches_table = db.table('matches')
             self.matches_info_table = db.table('matches_info')
         except dotamatch.api.ApiError:
@@ -53,21 +49,21 @@ class D2WBot(object):
         self.checkingThread.start()
 
     def startThread(self):
-        while(True):
+        while True:
             if not self.connected:
                 self.L() # Quick Connect
                 timer = 0
                 while(not self.connected):
                     time.sleep(1) # Waiting a connection to establish
-                    timer+=1
-                    if(timer==10):
-                        timer=0
+                    timer += 1
+                    if timer == 10:
+                        timer = 0
                         self.L()
+            print "["+str(datetime.now().time())+"] Getting matches..."
             messages = self.get_latest_matches()
             for m in messages:
-                self.message_send(self.groups[0],m.encode('utf-8'))
+                self.message_send(self.config.groups[0],m.encode('utf-8'))
             self.disconnect()
-            print "Disconnected"
             time.sleep(10*60) # Wait 10 minutes and check again!
 
     def getPrompt(self):
@@ -80,7 +76,8 @@ class D2WBot(object):
     def output(self, message, tag="general", prompt=True):
         if self.printOutput:
             print(message)
-        else: pass
+        else:
+            pass
 
     # TODO: Create a DECENT 'getStatus' function - Maybe with randomized messages based on the KDA?
     # TODO: Make use of the fill_match_info return
@@ -128,7 +125,7 @@ class D2WBot(object):
 
     def get_latest_matches(self):
         messages = []
-        for accountId in self.test:
+        for accountId in self.config.accounts:
             # Returns a list of matches, even if we resquest only one
             currentMatch = self.match_history.matches(account_id=accountId, matches_requested=1, language="en_us")[0]
             currentMatchDetails = self.match_details.match(currentMatch.match_id)

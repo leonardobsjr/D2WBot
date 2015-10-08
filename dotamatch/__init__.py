@@ -1,8 +1,8 @@
 import os.path
-
+import config
 
 def get_key():
-    key_path = os.path.expanduser("~/.steamapi")
+    key_path = os.path.expanduser(config.STEAM_KEY)
     if os.path.exists(key_path):
         with open(key_path, 'r') as f:
             key = f.read().strip()
@@ -13,7 +13,6 @@ def get_key():
             # Python 3
             key = input("Enter Steam API key: ")
     return key
-
 
 class Dota(object):
     def __init__(self, key):
@@ -27,7 +26,6 @@ class Dota(object):
         self.player_summaries = PlayerSummaries(key)
         self.resolve_vanity_url = ResolveVanityUrl(key)
         self.teams = Teams(key)
-
 
 from .economy import Economy
 from .heroes import Heroes

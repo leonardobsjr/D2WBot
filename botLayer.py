@@ -323,7 +323,6 @@ class BotLayer(D2WBot, YowInterfaceLayer):
                                                                                     originalEntity)
 
             self._sendIq(entity, successFn, errorFn)
-
     # Send audio file
     def audio_send(self, number, path):
         if self.assertConnected():
@@ -411,6 +410,33 @@ class BotLayer(D2WBot, YowInterfaceLayer):
                         tag="Notification")
         if self.sendReceipts:
             self.toLower(notification.ack())
+
+    # @ProtocolEntityCallback("message")
+    # def onMessage(self, message):
+    #     messageOut = ""
+    #     if message.getType() == "text":
+    #         # self.output(message.getBody(), tag = "%s [%s]"%(message.getFrom(), formattedDate))
+    #         messageOut = self.getTextMessageBody(message)
+    #     elif message.getType() == "media":
+    #         messageOut = self.getMediaMessageBody(message)
+    #     else:
+    #         messageOut = "Unknown message type %s " % message.getType()
+    #         print(messageOut.toProtocolTreeNode())
+    #
+    #     formattedDate = datetime.datetime.fromtimestamp(message.getTimestamp()).strftime('%d-%m-%Y %H:%M')
+    #     sender = message.getFrom() if not message.isGroupMessage() else "%s/%s" % (
+    #     message.getParticipant(False), message.getFrom())
+    #     output = self.__class__.MESSAGE_FORMAT.format(
+    #         FROM=sender,
+    #         TIME=formattedDate,
+    #         MESSAGE=messageOut.encode('latin-1').decode() if sys.version_info >= (3, 0) else messageOut,
+    #         MESSAGE_ID=message.getId()
+    #     )
+    #
+    #     self.output(output, tag=None, prompt=not self.sendReceipts)
+    #     if self.sendReceipts:
+    #         self.toLower(message.ack())
+    #         self.output("Sent delivered receipt", tag="Message %s" % message.getId())
 
     @ProtocolEntityCallback("message")
     def onMessage(self, message):
