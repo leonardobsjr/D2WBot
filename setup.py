@@ -13,6 +13,7 @@ setup(
         "pyopenssl",
         "ndg-httpsclient",
         "pyasn1",
-        "pip"
+        "pip",
+        "requests"
     ],
 )

@@ -1,4 +1,5 @@
 import os.path
+import logging
 from yowsup.common import YowConstants
 
 # The file with the Whatsapp Credentials. Two lines, the first one is the login (phone number with country code)
@@ -17,9 +18,15 @@ GROUPS = "~/.groups"
 # Database of matches
 DB = "db.json"
 
-#Yowsup Path Storage -
+#Yowsup Path Storage - Experimental
 YOWSUP = ".yowsup"
 
+# Timer between checking (in minutes)
+CHECKING_INTERVAL = 10
+
+# Logging settings
+LOGGING_LEVEL = logging.DEBUG
+LOGGING_FORMAT = '_%(filename)s_\t[%(levelname)s][%(asctime)-15s] %(message)s'
 
 # Profile Picture
 # Status
