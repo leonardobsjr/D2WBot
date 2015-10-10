@@ -1,6 +1,6 @@
 import sys
+import logging
 
-import datetime
 from yowsup.stacks import YowStackBuilder
 from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent
@@ -33,8 +33,9 @@ class BotStack(object):
 
 if __name__ == "__main__":
     c = Config()  # Read credentials in (~/.wcredentials)
+    logging.basicConfig(stream=sys.stdout, level=c.logging_level, format=c.log_format)
     s = BotStack(c.whatsapp_credentials)
-    s.__setattr__("config",c)
+    s.__setattr__("config", c)  # Make config accessible to the stack
     while True:
         print "Starting the bot..."
         s.start()

@@ -2,20 +2,20 @@
 
 import threading
 import time
+from datetime import datetime
+from datetime import timedelta
+
 import pytz
+from tinydb import TinyDB
+from tinydb import where
 
 import dotamatch
 from dotamatch import MatchHistory
 from dotamatch import MatchDetails
 from dotamatch import Heroes
 from dotamatch import PlayerSummaries
-
 from config import Config
-from datetime import datetime
-from datetime import timedelta
 
-from tinydb import TinyDB
-from tinydb import where
 
 class D2WBot(object):
     def __init__(self):
@@ -59,11 +59,18 @@ class D2WBot(object):
                     if timer == 10:
                         timer = 0
                         self.L()
+
             print "["+str(datetime.now().time())+"] Getting matches..."
-            messages = self.get_latest_matches()
-            for m in messages:
-                self.message_send(self.config.groups[0],m.encode('utf-8'))
-            self.disconnect()
+            try:
+                messages = self.get_latest_matches()
+                for m in messages:
+                    self.message_send(self.config.groups[0], m.encode('utf-8'))
+                self.disconnect()
+            except dotamatch.api.ApiError:
+                print "[" + str(datetime.now().time()) + "] The Dota2 Api is down. Can't fetch matches."
+            except Exception:
+                print "[" + str(datetime.now().time()) + "] Because of an unknown error, i couldn't fetch matches."
+            print "[" + str(datetime.now().time()) + "] Cicle complete, sleeping for 10 minutes... zZzZ"
             time.sleep(10*60) # Wait 10 minutes and check again!
 
     def getPrompt(self):
