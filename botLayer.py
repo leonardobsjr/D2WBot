@@ -19,12 +19,12 @@ from yowsup.layers.protocol_media.protocolentities import *
 from yowsup.layers.protocol_profiles.protocolentities import *
 from yowsup.common.tools import ModuleTools
 
-from Dota2Bot import D2WBot
+from D2WBot_Utils import D2WBot_Utils
 
 logger = logging.getLogger(__name__)
 
 
-class BotLayer(D2WBot, YowInterfaceLayer):
+class BotLayer(D2WBot_Utils, YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
     PROP_RECEIPT_KEEPALIVE = "org.openwhatsapp.yowsup.prop.cli.keepalive"
     PROP_CONTACT_JID = "org.openwhatsapp.yowsup.prop.cli.contact.jid"

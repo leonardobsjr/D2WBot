@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import threading
 import time
 from datetime import datetime
 from datetime import timedelta
+import logging
 
 import pytz
 from tinydb import TinyDB
 from tinydb import where
-
-import logging
 
 import dotamatch
 from dotamatch import MatchHistory
@@ -41,7 +39,7 @@ class D2WBot_Utils(object):
             # ActualDB
             db = TinyDB(self.config.db_path)
             #db.purge()
-            #db.purge_tables()
+            # hdb.purge_tables()
 
             self.matches_table = db.table('matches')
             self.matches_info_table = db.table('matches_info')
@@ -54,7 +52,8 @@ class D2WBot_Utils(object):
     def startThread(self):
         while True:
             try:
-                if False:#not self.connected:
+                # Doesn't connect on debug
+                if not self.connected and self.config.log_level == logging.INFO:
                     self.L() # Quick Connect
                     timer = 0
                     while(not self.connected):
@@ -64,12 +63,17 @@ class D2WBot_Utils(object):
                             timer = 0
                             self.L()
                 logging.info("Fetching matches...")
-                messages = self.get_latest_matches()
+                latest_matches = self.find_latest_matches()
+                messages = self.generate_messages(latest_matches)
                 if messages:
                     logging.info("Found %s new matches!"%len(messages))
                     for m in messages:
-                        self.message_send(self.config.groups[0], m.encode('utf-8'))
-                self.disconnect()
+                        if self.config.log_level == logging.DEBUG:
+                            print(m)
+                        else:
+                            self.message_send(self.config.groups[0], m.encode('utf-8'))
+                if self.connected:
+                    self.disconnect()
             except dotamatch.api.ApiError:
                 logging.error("The Dota2 Api is Down, can't fetch matches.")
             except Exception, e:
@@ -99,11 +103,38 @@ class D2WBot_Utils(object):
             return "perdeu"
 
     def create_message(self,info):
-        # TODO: Create a way to randomize cool messages
-        return u"\"{}\" {} de {} em {} que durou {}. KDA: {}/{}/{}".format(info['personaname'], self.calculate_status(info),
-                                                                           info['hero'], info['end_time'].decode('utf-8'),
-                                                                           info['duration'], info['kills'], info['deaths'],
-                                                                           info['assists'])
+        if len(info) == 1:
+            info = info[0]
+            # TODO: Create a way to randomize cool messages
+            return u"\"{}\" {} de {} em {} {}. Duração da partida: {}. KDA: {}/{}/{}".format(info['personaname'],
+                                                                                             self.calculate_status(
+                                                                                                 info),
+                                                                                             info['hero'],
+                                                                                             info['end_time'].decode(
+                                                                                                 'utf-8'),
+                                                                                             (u"\U0001F44F" if info[
+                                                                                                 'win'] else u"\U0001F622"),
+                                                                                             info['duration'],
+                                                                                             info['kills'],
+                                                                                             info['deaths'],
+                                                                                             info['assists'])
+        else:
+            # TODO: This is awful
+            party = " e ".join(["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info])
+            kdas = ", ".join(["{}/{}/{}".format(i['kills'], i['deaths'], i['assists']) for i in info])
+            if info[0]['win']:
+                resultado = "venceram"
+            else:
+                resultado = "perderam"
+            message = u"Party Time \U0001F389! {} {} em {}. Duração da partida: {}. KDAs: {}".format(party, resultado,
+                                                                                                     info[0][
+                                                                                                         'end_time'].decode(
+                                                                                                         'utf-8'),
+                                                                                                     info[0][
+                                                                                                         'duration'],
+                                                                                                     kdas)
+            return message
+
 
     # Converts to GMT -03:00
     def utc_to_local(self,time):
@@ -129,11 +160,61 @@ class D2WBot_Utils(object):
             u'%d-%m-%Y às %H:%M:%S'.encode('utf-8'))
         info = {'side': side, 'win': win, 'account_id': account_id, 'personaname': player_account_details.personaname,
                 'hero': used_hero, 'match_id': match_details.match_id, 'kills': kills, 'deaths': deaths, 'assists': assists,
-                'hero': used_hero, 'gpm': gpm, 'last_hits': last_hits, 'start_time': start_time, 'end_time': end_time,
+                'gpm': gpm, 'last_hits': last_hits, 'start_time': start_time, 'end_time': end_time,
                 'duration': duration}
         self.matches_info_table.insert(info)
         return info
 
+    # Find the latest matches (1 per AccountID)
+    def find_latest_matches(self):
+        matches = {}
+        for accountId in self.config.accounts:
+            # Returns a list of matches, even if we resquest only one
+            currentMatch = self.match_history.matches(account_id=accountId, matches_requested=1, language="en_us")[0]
+            currentMatchDetails = self.match_details.match(currentMatch.match_id)
+
+            # Find if there's two players in the same match
+            if not matches.get(currentMatch.match_id, False):
+                matches[currentMatch.match_id] = currentMatch, currentMatchDetails, [accountId]
+            else:
+                matches[currentMatch.match_id][2].append(accountId)
+        return matches
+
+    def generate_messages(self, matches):
+        messages = []
+        for match_id, match_information in matches.iteritems():
+            currentMatch = match_information[0]
+            currentMatchDetails = match_information[1]
+            accounts = match_information[2]
+            match_player_info = []
+            matches_to_insert = []
+            for accountId in accounts:
+                # If the match is registered already, don't register again
+                db_matches = self.matches_table.search(
+                    (where('account_id') == accounts[0]) & (where('match_id') == currentMatch.match_id))
+                if not db_matches:
+                    match_player_info.append(self.fill_match_info(currentMatchDetails, accountId))
+                    matches_to_insert.append(
+                        {'account_id': accountId, 'match_id': currentMatch.match_id,
+                         'date_added': str(datetime.now())}
+                    )
+                elif not self.config.unique_match_message:
+                    messages.append(db_matches[0]['generated_message'])
+
+            # If there's matches to process...
+            if match_player_info:
+                message = self.create_message(match_player_info)
+                messages.append(message)
+                for mpi in match_player_info:
+                    for mti in matches_to_insert:
+                        if mti['account_id'] == mpi['account_id']:
+                            mti['generated_message'] = message
+                            self.matches_table.insert(mti)
+
+        # Removing duplicate messages due to the party detection
+        return set(messages)
+
+    @DeprecationWarning
     def get_latest_matches(self):
         messages = []
         for accountId in self.config.accounts:

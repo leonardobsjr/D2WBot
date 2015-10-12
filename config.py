@@ -1,6 +1,5 @@
 import os.path
 import logging
-from yowsup.common import YowConstants
 
 # The file with the Whatsapp Credentials. Two lines, the first one is the login (phone number with country code)
 # and the base64 encoded password
@@ -21,16 +20,14 @@ DB = "db.json"
 # Timer between checking (in minutes)
 CHECKING_INTERVAL = 10
 
+# Inform only the latest matches once or all last matches per account every CHECKING_INTERVAL
+UNIQUE_MATCH_MESSAGE = True
+
 # Logging settings
 LOGGING_LEVEL = logging.INFO
-#LOGGING_FORMAT = '[%(asctime)s][%(filename)s] %(levelname)s %(message)s'
-LOGGING_FORMAT = '[%(asctime)s] %(message)s'
+LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
 LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
-# Profile Picture
-# Status
-
-# Whatsapp Credentials
 class Config(object):
     def __init__(self):
         whatsapp_credentials_file = os.path.expanduser(WHATSAPP_CREDENTIALS)
@@ -49,3 +46,4 @@ class Config(object):
         self.log_format = LOGGING_FORMAT
         self.log_date_format = LOGGING_DATE_FORMAT
         self.checking_interval = CHECKING_INTERVAL
+        self.unique_match_message = UNIQUE_MATCH_MESSAGE
