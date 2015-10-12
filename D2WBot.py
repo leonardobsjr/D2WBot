@@ -6,7 +6,7 @@ from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent
 
 from config import Config
-from botLayer import BotLayer
+from botLayer import BotUtilsLayer
 
 
 class BotStack(object):
@@ -14,14 +14,14 @@ class BotStack(object):
         stackBuilder = YowStackBuilder()
         self.stack = stackBuilder \
             .pushDefaultLayers(encryptionEnabled) \
-            .push(BotLayer) \
+            .push(BotUtilsLayer) \
             .build()
 
         self.stack.setCredentials(credentials)
 
     def start(self):
         print("Starting up!")
-        self.stack.broadcastEvent(YowLayerEvent(BotLayer.EVENT_START))
+        self.stack.broadcastEvent(YowLayerEvent(BotUtilsLayer.EVENT_START))
         try:
             self.stack.loop(timeout=0.5, discrete=0.5)
         except AuthError as e:

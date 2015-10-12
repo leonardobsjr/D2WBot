@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import threading
 import time
 from datetime import datetime
@@ -9,6 +10,8 @@ import pytz
 from tinydb import TinyDB
 from tinydb import where
 
+import logging
+
 import dotamatch
 from dotamatch import MatchHistory
 from dotamatch import MatchDetails
@@ -17,7 +20,7 @@ from dotamatch import PlayerSummaries
 from config import Config
 
 
-class D2WBot(object):
+class D2WBot_Utils(object):
     def __init__(self):
         self.sentCache = {}
         self.checkingThread = threading.Thread(target = self.startThread)
@@ -50,28 +53,29 @@ class D2WBot(object):
 
     def startThread(self):
         while True:
-            if not self.connected:
-                self.L() # Quick Connect
-                timer = 0
-                while(not self.connected):
-                    time.sleep(1) # Waiting a connection to establish
-                    timer += 1
-                    if timer == 10:
-                        timer = 0
-                        self.L()
-
-            print "["+str(datetime.now().time())+"] Getting matches..."
             try:
+                if False:#not self.connected:
+                    self.L() # Quick Connect
+                    timer = 0
+                    while(not self.connected):
+                        time.sleep(1) # Waiting a connection to establish
+                        timer += 1
+                        if timer == 10:
+                            timer = 0
+                            self.L()
+                logging.info("Fetching matches...")
                 messages = self.get_latest_matches()
-                for m in messages:
-                    self.message_send(self.config.groups[0], m.encode('utf-8'))
+                if messages:
+                    logging.info("Found %s new matches!"%len(messages))
+                    for m in messages:
+                        self.message_send(self.config.groups[0], m.encode('utf-8'))
                 self.disconnect()
             except dotamatch.api.ApiError:
-                print "[" + str(datetime.now().time()) + "] The Dota2 Api is down. Can't fetch matches."
-            except Exception:
-                print "[" + str(datetime.now().time()) + "] Because of an unknown error, i couldn't fetch matches."
-            print "[" + str(datetime.now().time()) + "] Cicle complete, sleeping for 10 minutes... zZzZ"
-            time.sleep(10*60) # Wait 10 minutes and check again!
+                logging.error("The Dota2 Api is Down, can't fetch matches.")
+            except Exception, e:
+                logging.error("Because of an unknown error, i couldn't fetch matches. Exception: %s"%e.__class__,exc_info=True)
+            logging.info("Cicle complete, sleeping for %s minutes ..."%self.config.checking_interval)
+            time.sleep(self.config.checking_interval*60) # Wait and check again l3ter.
 
     def getPrompt(self):
         return "[%s]:" % ("connected" if self.connected else "offline")
@@ -147,6 +151,6 @@ class D2WBot(object):
                     {'account_id': accountId, 'match_id': currentMatch.match_id, 'generated_message': message,
                      'date_added': str(datetime.now())})
                 messages.append(message)
-            else:
+            elif not self.config.unique_match_message:
                 messages.append(matches[0]['generated_message'])
         return messages

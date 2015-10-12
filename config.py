@@ -4,29 +4,28 @@ from yowsup.common import YowConstants
 
 # The file with the Whatsapp Credentials. Two lines, the first one is the login (phone number with country code)
 # and the base64 encoded password
-WHATSAPP_CREDENTIALS = "~/.wcredentials"
+WHATSAPP_CREDENTIALS = ".wcredentials"
 
 # Steam API developer key (http://steamcommunity.com/dev/apikey)
-STEAM_KEY = "~/.steamapi"
+STEAM_KEY = ".steamapi"
 
 # 32bits id. Accounts to be checked, one per line.
-ACCOUNTS = "~/.accounts"
+ACCOUNTS = ".accounts"
 
 # Id of the groups that will receive the messages
-GROUPS = "~/.groups"
+GROUPS = ".groups"
 
 # Database of matches
 DB = "db.json"
-
-#Yowsup Path Storage - Experimental
-YOWSUP = ".yowsup"
 
 # Timer between checking (in minutes)
 CHECKING_INTERVAL = 10
 
 # Logging settings
-LOGGING_LEVEL = logging.DEBUG
-LOGGING_FORMAT = '_%(filename)s_\t[%(levelname)s][%(asctime)-15s] %(message)s'
+LOGGING_LEVEL = logging.INFO
+#LOGGING_FORMAT = '[%(asctime)s][%(filename)s] %(levelname)s %(message)s'
+LOGGING_FORMAT = '[%(asctime)s] %(message)s'
+LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 # Profile Picture
 # Status
@@ -46,6 +45,7 @@ class Config(object):
             for i in f.readlines():
                 self.groups.append(i.rstrip("\n"))
         self.db_path = DB
-        if not YOWSUP:
-            YowConstants.PATH_STORAGE = YOWSUP
-
+        self.log_level = LOGGING_LEVEL
+        self.log_format = LOGGING_FORMAT
+        self.log_date_format = LOGGING_DATE_FORMAT
+        self.checking_interval = CHECKING_INTERVAL
