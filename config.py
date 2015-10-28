@@ -3,16 +3,16 @@ import logging
 
 # The file with the Whatsapp Credentials. Two lines, the first one is the login (phone number with country code)
 # and the base64 encoded password
-WHATSAPP_CREDENTIALS = ".wcredentials"
+WHATSAPP_CREDENTIALS = "~/.wcredentials"
 
 # Steam API developer key (http://steamcommunity.com/dev/apikey)
-STEAM_KEY = ".steamapi"
+STEAM_KEY = "~/.steamapi"
 
 # 32bits id. Accounts to be checked, one per line.
-ACCOUNTS = ".accounts"
+ACCOUNTS = "~/.accounts"
 
 # Id of the groups that will receive the messages
-GROUPS = ".groups"
+GROUPS = "~/.groups"
 
 # Database of matches
 DB = "db.json"
@@ -27,6 +27,12 @@ UNIQUE_MATCH_MESSAGE = True
 LOGGING_LEVEL = logging.INFO
 LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
 LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
+
+# Message Timezone. Possible Timezones: pytz.all_timezones and http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+TIMEZONE = 'Brazil/East'
+
+# Date and Time format to be used in the messages
+DATE_AND_TIME_FORMAT = '%d-%m-%Y às %H:%M:%S'
 
 class Config(object):
     def __init__(self):
@@ -47,3 +53,5 @@ class Config(object):
         self.log_date_format = LOGGING_DATE_FORMAT
         self.checking_interval = CHECKING_INTERVAL
         self.unique_match_message = UNIQUE_MATCH_MESSAGE
+        self.timezone = TIMEZONE
+        self.date_and_time_format = DATE_AND_TIME_FORMAT

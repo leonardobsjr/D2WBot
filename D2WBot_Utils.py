@@ -103,42 +103,63 @@ class D2WBot_Utils(object):
             return "perdeu"
 
     def create_message(self,info):
+        #Ex: "NickName" [venceu/perdeu] de WindRanger em 01/01/1990 às 00:00:00 [Emoticon]. Duração da partida: 120m. KDA: 100/50/25
+        default_single_message = u"\"{}\" {} de {} em {} {}. Duração da partida: {}. KDA: {}/{}/{}"
+
+        #Ex: [Party Time [Emoticon]]! "NickName1 (Sven)" e "NickName2 (WindRanger)" [venceram/perderam] em 01/01/1990 às 00:00:00 [Emoticon]. Duração da partida: 120m. KDAs: 100/50/25, 0/50/100
+        default_party_message = u"Party Time \U0001F389! {} {} em {}. Duração da partida: {}. KDAs: {}"
+
+        #Ex: "Nickname1 (Sven) e Nickname2 (WindRanger) [ganharam/ganhou] de Nickname3 (Invoker) em 01/01/1990 às 00:00:00 [Emoticon]. Duração da partida: 120m. KDAs: 100/50/25, 0/50/100, 0/0/0
+        default_versus_message = u"{} {} de {} em {} \U0001F4AA. Duração da partida: {}. KDAs: {}"
+
+        end_time = info[0]['end_time'].decode('utf-8')
+        duration = info[0]['duration']
+
         if len(info) == 1:
             info = info[0]
             # TODO: Create a way to randomize cool messages
-            return u"\"{}\" {} de {} em {} {}. Duração da partida: {}. KDA: {}/{}/{}".format(info['personaname'],
-                                                                                             self.calculate_status(
-                                                                                                 info),
-                                                                                             info['hero'],
-                                                                                             info['end_time'].decode(
-                                                                                                 'utf-8'),
-                                                                                             (u"\U0001F44F" if info[
-                                                                                                 'win'] else u"\U0001F622"),
-                                                                                             info['duration'],
-                                                                                             info['kills'],
-                                                                                             info['deaths'],
-                                                                                             info['assists'])
+            return default_single_message.format(info['personaname'],
+                                             self.calculate_status(
+                                                 info),
+                                             info['hero'],
+                                             end_time,
+                                             (u"\U0001F44F" if info[
+                                                 'win'] else u"\U0001F622"),
+                                             duration,
+                                             info['kills'],
+                                             info['deaths'],
+                                             info['assists'])
         else:
-            # TODO: This is awful
-            party = " e ".join(["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info])
-            kdas = ", ".join(["{}/{}/{}".format(i['kills'], i['deaths'], i['assists']) for i in info])
-            if info[0]['win']:
-                resultado = "venceram"
+            winning_side = [i for i in info if i['win']]
+            losing_side = [i for i in info if not i['win']]
+            same_sides = len(winning_side) == 0 or len(losing_side) == 0
+
+            # TODO: Check if they're in a party
+            if same_sides:
+                # The message created is a party message, but in reality it doesn't check if they're in a party
+                names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
+                kda_list = ["{}/{}/{}".format(i['kills'], i['deaths'], i['assists']) for i in info]
+
+                party = " e ".join(", ".join(names_and_heroes[:-1]),names_and_heroes[-1])
+                kdas = ", ".join(kda_list)
+
+                if info[0]['win']:
+                    resultado = "venceram"
+                else:
+                    resultado = "perderam"
+                message = default_party_message.format(party, resultado, end_time, duration, kdas)
+                return message
             else:
-                resultado = "perderam"
-            message = u"Party Time \U0001F389! {} {} em {}. Duração da partida: {}. KDAs: {}".format(party, resultado,
-                                                                                                     info[0][
-                                                                                                         'end_time'].decode(
-                                                                                                         'utf-8'),
-                                                                                                     info[0][
-                                                                                                         'duration'],
-                                                                                                     kdas)
-            return message
+                winning_names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
+                losing_names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
+                kda_list = ["{}/{}/{}".format(i['kills'], i['deaths'], i['assists']) for i in winning_side+losing_side]
+                resultado = ['ganharam' if len(winning_side)>1 else 'ganhou']
+                message = default_versus_message.format(winning_names_and_heroes,resultado,losing_names_and_heroes,end_time,duration,kda_list)
+                return message
 
-
-    # Converts to GMT -03:00
+    # Converts the UTC time of the match to the current set timezone in config.py
     def utc_to_local(self,time):
-        local_tz = pytz.timezone('Brazil/East')
+        local_tz = pytz.timezone(self.config.timezone)
         local_dt = datetime.fromtimestamp(time, local_tz)
         return local_dt
 
