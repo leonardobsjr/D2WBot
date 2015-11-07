@@ -3,7 +3,6 @@ import logging
 
 from yowsup.stacks import YowStackBuilder
 from yowsup.layers.auth import AuthError
-
 from yowsup.layers import YowLayerEvent
 
 from config import Config
@@ -33,17 +32,17 @@ class D2WBot(object):
             sys.exit(0)
 
 if __name__ == "__main__":
+    c = Config()  # Load the configurations
+    # GTFO Urllib3 logger
+    urllib3_logger = logging.getLogger('urllib3')
+    urllib3_logger.setLevel(logging.CRITICAL)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.basicConfig(stream=sys.stdout, level=c.log_level, format=c.log_format, datefmt=c.log_date_format)
+    s = D2WBot(c.whatsapp_credentials, False)
+    s.__setattr__("config", c)  # Make config accessible to the stack
     while True:
         try:
-            c = Config()  # Load the configurations
-            # GTFO Urllib3 logger
-            urllib3_logger = logging.getLogger('urllib3')
-            urllib3_logger.setLevel(logging.CRITICAL)
-            logging.basicConfig(stream=sys.stdout, level=c.log_level, format=c.log_format, datefmt=c.log_date_format)
-            s = D2WBot(c.whatsapp_credentials)
-            s.__setattr__("config", c)  # Make config accessible to the stack
-            while True:
-                logging.info("Starting the bot...")
-                s.start()
+            logging.info("Starting the bot...")
+            s.start()
         except Exception, e:
             logging.error("Oh Noes! %s" % e)

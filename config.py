@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import os.path
 import logging
 
@@ -32,7 +34,10 @@ LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 TIMEZONE = 'Brazil/East'
 
 # Date and Time format to be used in the messages
-DATE_AND_TIME_FORMAT = '%d-%m-%Y às %H:%M:%S'
+DATE_AND_TIME_FORMAT = u'%d-%m-%Y às %H:%M:%S'
+
+# Ignore DST (Daylight Savings Time)
+IGNORE_DST = True
 
 class Config(object):
     def __init__(self):
@@ -55,3 +60,4 @@ class Config(object):
         self.unique_match_message = UNIQUE_MATCH_MESSAGE
         self.timezone = TIMEZONE
         self.date_and_time_format = DATE_AND_TIME_FORMAT
+        self.ignore_dst = IGNORE_DST

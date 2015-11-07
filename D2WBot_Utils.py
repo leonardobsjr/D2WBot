@@ -78,6 +78,7 @@ class D2WBot_Utils(object):
                 logging.error("The Dota2 Api is Down, can't fetch matches.")
             except Exception, e:
                 logging.error("Because of an unknown error, i couldn't fetch matches. Exception: %s"%e.__class__,exc_info=True)
+
             logging.info("Cicle complete, sleeping for %s minutes ..."%self.config.checking_interval)
             time.sleep(self.config.checking_interval*60) # Wait and check again l3ter.
 
@@ -140,7 +141,7 @@ class D2WBot_Utils(object):
                 names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
                 kda_list = ["{}/{}/{}".format(i['kills'], i['deaths'], i['assists']) for i in info]
 
-                party = " e ".join(", ".join(names_and_heroes[:-1]),names_and_heroes[-1])
+                party = " e ".join([", ".join(names_and_heroes[:-1]), names_and_heroes[-1]])
                 kdas = ", ".join(kda_list)
 
                 if info[0]['win']:
@@ -161,7 +162,10 @@ class D2WBot_Utils(object):
     def utc_to_local(self,time):
         local_tz = pytz.timezone(self.config.timezone)
         local_dt = datetime.fromtimestamp(time, local_tz)
-        return local_dt
+        if self.config.ignore_dst:
+            return local_dt - local_dt.dst()
+        else:
+            return local_dt
 
     def fill_match_info(self,match_details, account_id):
         player_stats = match_details.player(account_id)
