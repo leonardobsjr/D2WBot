@@ -2,6 +2,7 @@
 
 import threading
 import time
+import csv
 from datetime import datetime
 from datetime import timedelta
 import logging
@@ -38,7 +39,7 @@ class D2WBot_Utils(object):
 
             # ActualDB
             db = TinyDB(self.config.db_path)
-            #db.purge()
+            db.purge()
             # hdb.purge_tables()
 
             self.matches_table = db.table('matches')
@@ -108,7 +109,7 @@ class D2WBot_Utils(object):
         default_single_message = u"\"{}\" {} de {} em {} {}. Duração da partida: {}. KDA: {}/{}/{}"
 
         #Ex: [Party Time [Emoticon]]! "NickName1 (Sven)" e "NickName2 (WindRanger)" [venceram/perderam] em 01/01/1990 às 00:00:00 [Emoticon]. Duração da partida: 120m. KDAs: 100/50/25, 0/50/100
-        default_party_message = u"Party Time \U0001F389! {} {} em {}. Duração da partida: {}. KDAs: {}"
+        default_party_message = u"Party Time \U0001F389! {} {} em {} {}. Duração da partida: {}. KDAs: {}"
 
         #Ex: "Nickname1 (Sven) e Nickname2 (WindRanger) [ganharam/ganhou] de Nickname3 (Invoker) em 01/01/1990 às 00:00:00 [Emoticon]. Duração da partida: 120m. KDAs: 100/50/25, 0/50/100, 0/0/0
         default_versus_message = u"{} {} de {} em {} \U0001F4AA. Duração da partida: {}. KDAs: {}"
@@ -146,9 +147,12 @@ class D2WBot_Utils(object):
 
                 if info[0]['win']:
                     resultado = "venceram"
+                    emoticon = u"\U0001F4AA"
                 else:
                     resultado = "perderam"
-                message = default_party_message.format(party, resultado, end_time, duration, kdas)
+                    emoticon = u"\U0001F629"
+
+                message = default_party_message.format(party, resultado, emoticon, end_time, duration, kdas)
                 return message
             else:
                 winning_names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
@@ -229,34 +233,42 @@ class D2WBot_Utils(object):
             # If there's matches to process...
             if match_player_info:
                 message = self.create_message(match_player_info)
+                self.detect_spree(accountId,match_player_info)
                 messages.append(message)
                 for mpi in match_player_info:
                     for mti in matches_to_insert:
                         if mti['account_id'] == mpi['account_id']:
                             mti['generated_message'] = message
+                            mti['win'] = match_player_info[0]['win']
+
                             self.matches_table.insert(mti)
 
         # Removing duplicate messages due to the party detection
         return set(messages)
 
-    @DeprecationWarning
-    def get_latest_matches(self):
-        messages = []
-        for accountId in self.config.accounts:
-            # Returns a list of matches, even if we resquest only one
-            currentMatch = self.match_history.matches(account_id=accountId, matches_requested=1, language="en_us")[0]
-            currentMatchDetails = self.match_details.match(currentMatch.match_id)
 
-            # Search if the match is already registered and retrieve generated message
-            matches = self.matches_table.search(
-                (where('account_id') == accountId) & (where('match_id') == currentMatch.match_id))
-            if not matches:
-                info = self.fill_match_info(currentMatchDetails, accountId)
-                message = self.create_message(info)
-                self.matches_table.insert(
-                    {'account_id': accountId, 'match_id': currentMatch.match_id, 'generated_message': message,
-                     'date_added': str(datetime.now())})
-                messages.append(message)
-            elif not self.config.unique_match_message:
-                messages.append(matches[0]['generated_message'])
-        return messages
+    def detect_spree(self,accountId,match_player_info):
+        last_9_matches = list(reversed(self.matches_table.search(where('account_id')==accountId)))[0:9]
+        spree = match_player_info[0]['win']
+        spree_length = 0
+        for match in last_9_matches:
+            print match['win']
+            if match['win']==spree:
+                spree_length+=1
+            else:
+                break
+        print "ESSA PORRA = " + str(spree_length)
+        if spree_length>=3:
+            return self.get_spree_message(match_player_info[0]['win'],spree_length)
+
+    def get_spree_message(self, win, spree):
+        results = {}
+        arq = 'winning_streak_messages.pt_BR'
+        if not win:
+            #arq = 'losing_streak_messages.pt_BR'
+            arq = 'winning_streak_messages.pt_BR'
+        with open(arq, 'r') as txt:
+            reader = csv.reader(txt)
+            for row in reader:
+                results[row[0]] = row[1]
+        return
