@@ -39,6 +39,14 @@ DATE_AND_TIME_FORMAT = u'%d-%m-%Y às %H:%M:%S'
 # Ignore DST (Daylight Savings Time)
 IGNORE_DST = True
 
+# Include winning streak message?
+WINNING_STREAK = True
+WINNING_STREAK_FILE = "winning_streak_messages.pt_BR"
+
+# Include losing streak message?
+LOSING_STREAK = True
+LOSING_STREAK_FILE = "losing_streak_messages.pt_BR"
+
 class Config(object):
     def __init__(self):
         whatsapp_credentials_file = os.path.expanduser(WHATSAPP_CREDENTIALS)
@@ -61,3 +69,7 @@ class Config(object):
         self.timezone = TIMEZONE
         self.date_and_time_format = DATE_AND_TIME_FORMAT
         self.ignore_dst = IGNORE_DST
+        self.winning_streak = WINNING_STREAK
+        self.winning_streak_file = WINNING_STREAK_FILE
+        self.losing_streak = LOSING_STREAK
+        self.losing_streak_file = LOSING_STREAK_FILE

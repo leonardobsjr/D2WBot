@@ -26,6 +26,11 @@ class D2WBot_Utils(object):
         self.checkingThread.daemon = True
         self.config = Config()
 
+        if self.config.winning_streak:
+            self.winning_streak_messages = self.read_spree_file(self.config.winning_streak_file)
+        if self.config.losing_streak:
+            self.losing_streak_messages = self.read_spree_file(self.config.losing_streak_file)
+
         # Debug purposes
         self.printOutput = False
 
@@ -39,7 +44,7 @@ class D2WBot_Utils(object):
 
             # ActualDB
             db = TinyDB(self.config.db_path)
-            db.purge()
+            #db.purge()
             # hdb.purge_tables()
 
             self.matches_table = db.table('matches')
@@ -233,7 +238,9 @@ class D2WBot_Utils(object):
             # If there's matches to process...
             if match_player_info:
                 message = self.create_message(match_player_info)
-                self.detect_spree(accountId,match_player_info)
+                spree = self.detect_spree(accountId, match_player_info)
+                if spree:
+                    message = spree + " " + message
                 messages.append(message)
                 for mpi in match_player_info:
                     for mti in matches_to_insert:
@@ -247,28 +254,40 @@ class D2WBot_Utils(object):
         return set(messages)
 
 
-    def detect_spree(self,accountId,match_player_info):
-        last_9_matches = list(reversed(self.matches_table.search(where('account_id')==accountId)))[0:9]
+    def detect_spree(self, accountId, match_player_info):
+        last_9_matches = list(reversed(self.matches_info_table.search(where('account_id')==accountId)))[0:9]
         spree = match_player_info[0]['win']
         spree_length = 0
         for match in last_9_matches:
-            print match['win']
-            if match['win']==spree:
-                spree_length+=1
+            #print str(match['win'])+str(match.eid)
+            if match['win'] == spree:
+                spree_length += 1
             else:
                 break
-        print "ESSA PORRA = " + str(spree_length)
-        if spree_length>=3:
-            return self.get_spree_message(match_player_info[0]['win'],spree_length)
+        #print str(spree_length)
+        if spree_length >= 3:
+            return self.get_spree_message(match_player_info[0]['win'], spree_length)
+        else:
+            return False
 
-    def get_spree_message(self, win, spree):
-        results = {}
-        arq = 'winning_streak_messages.pt_BR'
-        if not win:
-            #arq = 'losing_streak_messages.pt_BR'
-            arq = 'winning_streak_messages.pt_BR'
-        with open(arq, 'r') as txt:
-            reader = csv.reader(txt)
-            for row in reader:
-                results[row[0]] = row[1]
-        return
+
+    def read_spree_file(self,arq):
+        try:
+            results = {}
+            with open(arq, 'r') as txt:
+                reader = csv.reader(txt)
+                for row in reader:
+                    results[int(row[0])] = row[1]
+            return results
+        except Exception, e:
+            logging.error("Error reading spree file %s" % arq)
+            return results
+
+    def get_spree_message(self,win,spree):
+        try:
+            if win:
+                return self.winning_streak_messages[spree]
+            else:
+                return self.losing_streak_messages[spree]
+        except Exception, e:
+            logging.error("Error getting the spree message. win = {}, spree = {}".format(win,spree))
