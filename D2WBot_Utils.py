@@ -157,7 +157,7 @@ class D2WBot_Utils(object):
                     resultado = "perderam"
                     emoticon = u"\U0001F629"
 
-                message = default_party_message.format(party, resultado, emoticon, end_time, duration, kdas)
+                message = default_party_message.format(party, resultado, end_time, emoticon, duration, kdas)
                 return message
             else:
                 winning_names_and_heroes = ["\"%s (%s)\"" % (i['personaname'], i['hero']) for i in info]
@@ -238,16 +238,17 @@ class D2WBot_Utils(object):
             # If there's matches to process...
             if match_player_info:
                 message = self.create_message(match_player_info)
-                spree = self.detect_spree(accountId, match_player_info)
-                if spree:
-                    message = spree + " " + message
+
+                #No support for streak message with party messages...yet.
+                if len(match_player_info) == 1 :
+                    spree = self.detect_spree(accountId, match_player_info)
+                    if spree:
+                        message = spree + " " + message
                 messages.append(message)
                 for mpi in match_player_info:
                     for mti in matches_to_insert:
                         if mti['account_id'] == mpi['account_id']:
                             mti['generated_message'] = message
-                            mti['win'] = match_player_info[0]['win']
-
                             self.matches_table.insert(mti)
 
         # Removing duplicate messages due to the party detection
@@ -269,7 +270,6 @@ class D2WBot_Utils(object):
             return self.get_spree_message(match_player_info[0]['win'], spree_length)
         else:
             return False
-
 
     def read_spree_file(self,arq):
         try:

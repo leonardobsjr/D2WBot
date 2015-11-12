@@ -19,16 +19,11 @@ GROUPS = "~/.groups"
 # Database of matches
 DB = "db.json"
 
-# Timer between checking (in minutes)
+# Time between checking (in minutes)
 CHECKING_INTERVAL = 10
 
 # Inform only the latest matches once or all last matches per account every CHECKING_INTERVAL
 UNIQUE_MATCH_MESSAGE = True
-
-# Logging settings
-LOGGING_LEVEL = logging.INFO
-LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
-LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 # Message Timezone. Possible Timezones: pytz.all_timezones and http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 TIMEZONE = 'Brazil/East'
@@ -46,6 +41,11 @@ WINNING_STREAK_FILE = "winning_streak_messages.pt_BR"
 # Include losing streak message?
 LOSING_STREAK = True
 LOSING_STREAK_FILE = "losing_streak_messages.pt_BR"
+
+# Logging settings
+LOGGING_LEVEL = logging.DEBUG
+LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
+LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Config(object):
     def __init__(self):
