@@ -43,15 +43,17 @@ LOSING_STREAK = True
 LOSING_STREAK_FILE = "losing_streak_messages.pt_BR"
 
 # Logging settings
-LOGGING_LEVEL = logging.DEBUG
+LOGGING_LEVEL = logging.INFO
 LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
 LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Config(object):
     def __init__(self):
         whatsapp_credentials_file = os.path.expanduser(WHATSAPP_CREDENTIALS)
+        self.whatsapp_credentials=[]
         with open(whatsapp_credentials_file) as f:
-            self.whatsapp_credentials = [line.rstrip('\n') for line in f.readlines()]
+          for i in f.readlines():
+            self.whatsapp_credentials.append(i.rstrip("\n"))
         self.accounts=[]
         with open(os.path.expanduser(ACCOUNTS)) as f:
                 for i in f.readlines():

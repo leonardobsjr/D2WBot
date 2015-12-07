@@ -23,7 +23,8 @@ class D2WBot_Utils(object):
     def __init__(self):
         self.sentCache = {}
         self.checkingThread = threading.Thread(target = self.startThread)
-        self.checkingThread.daemon = True
+        #self.checkingThread.daemon = True
+        self.keepChecking = True
         self.config = Config()
 
         if self.config.winning_streak:
@@ -45,7 +46,7 @@ class D2WBot_Utils(object):
             # ActualDB
             db = TinyDB(self.config.db_path)
             #db.purge()
-            # hdb.purge_tables()
+            #db.purge_tables()
 
             self.matches_table = db.table('matches')
             self.matches_info_table = db.table('matches_info')
@@ -55,19 +56,28 @@ class D2WBot_Utils(object):
     def startChecking(self):
         self.checkingThread.start()
 
+
+    def stopChecking(self):
+        self.keepChecking = False
+        self.checkingThread.join()
+
     def startThread(self):
-        while True:
+        while self.keepChecking:
             try:
                 # Doesn't connect on debug
                 if not self.connected and self.config.log_level == logging.INFO:
-                    self.L() # Quick Connect
+                    self.L()
                     timer = 0
-                    while(not self.connected):
+                    while (not self.connected) and self.keepChecking:
                         time.sleep(1) # Waiting a connection to establish
                         timer += 1
                         if timer == 10:
                             timer = 0
                             self.L()
+                        if not self.keepChecking:
+                            return False
+                if not self.keepChecking:
+                    return False
                 logging.info("Fetching matches...")
                 latest_matches = self.find_latest_matches()
                 messages = self.generate_messages(latest_matches)
@@ -78,6 +88,7 @@ class D2WBot_Utils(object):
                             print(m)
                         else:
                             self.message_send(self.config.groups[0], m.encode('utf-8'))
+                        time.sleep(0.5)
                 if self.connected:
                     self.disconnect()
             except dotamatch.api.ApiError:
@@ -87,7 +98,7 @@ class D2WBot_Utils(object):
 
             logging.info("Cicle complete, sleeping for %s minutes ..."%self.config.checking_interval)
             time.sleep(self.config.checking_interval*60) # Wait and check again l3ter.
-
+        return True
     def getPrompt(self):
         return "[%s]:" % ("connected" if self.connected else "offline")
 

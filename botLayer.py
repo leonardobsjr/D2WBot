@@ -30,6 +30,7 @@ class BotLayer(D2WBot_Utils, YowInterfaceLayer):
     PROP_CONTACT_JID = "org.openwhatsapp.yowsup.prop.cli.contact.jid"
     EVENT_LOGIN = "org.openwhatsapp.yowsup.event.cli.login"
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
+    EVENT_SHUTDOWN = "shutdown"
     EVENT_SENDANDEXIT = "org.openwhatsapp.yowsup.event.cli.sendandexit"
 
     MESSAGE_FORMAT = "[{FROM}({TIME})]:[{MESSAGE_ID}]\t {MESSAGE}"
@@ -83,6 +84,9 @@ class BotLayer(D2WBot_Utils, YowInterfaceLayer):
     def onEvent(self, layerEvent):
         if layerEvent.getName() == self.__class__.EVENT_START:
             self.startChecking()
+            return True
+        elif layerEvent.getName() == self.__class__.EVENT_SHUTDOWN:
+            self.stopChecking()
             return True
         elif layerEvent.getName() == self.__class__.EVENT_SENDANDEXIT:
             credentials = layerEvent.getArg("credentials")

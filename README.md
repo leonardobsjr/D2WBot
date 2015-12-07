@@ -50,3 +50,6 @@ This software  is licensed under the GPLv3+: http://www.gnu.org/licenses/gpl-3.0
 
 sudo pip install --upgrade pyopenssl ndg-httpsclient pyasn1 pip
 
+##About not-authorized errors
+
+Check your login/password and then the version strings used on Yowsup. For more info, check: https://github.com/tgalal/yowsup/issues/1164
