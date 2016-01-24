@@ -15,6 +15,8 @@ I recommend using the yowsup-cli application and use a dedicated WhatsApp accoun
 
 Below there's some options that can be used to configure the bot, if you feel the need to.
 
+*INSTANCE_NAME* - The name of this D2WBot instance. Needed to differentiate between multiple running bots.
+
 *CHECKING_INTERVAL* - Time between checking (in minutes). The default value is 10. I don't recommend setting this to a very low value (like 1) because your steam dev key can be banned for abusing the Dota2 Api.
 
 *UNIQUE_MATCH_MESSAGE* - Inform only the latest matches once or all last matches per account every CHECKING_INTERVAL. Default value is True. Make it False to deactivate.
@@ -28,10 +30,20 @@ Below there's some options that can be used to configure the bot, if you feel th
 *WINNING/LOSING_STREAK* - Activate the detection of, respectively, winning or losing streaks. The streaks starts on 3, but there's no upper limit.
 The messages need to be put on *WINNING/LOSING_STREAK_FILE* on a CSV format. The streak messages don't show on party messages.
 
+Errors do happen. In case of error, the bot will try to restart its normal function. You can configure this process quite a bit:
+
+*NUMBER_OF_RETRIES* - Number of tries that the bot will try to restart and try to recover normal function. Default value is 10. 
+
+*TIME_BETWEEN_RETRIES* - Time (in seconds) between each retry. It's advisable to not change this to a super-low value to give a change of the external error to get sorted out. Default value is 5 minutes.
+
 And finally, there's the debug options:
 
 *LOGGING_LEVEL* = Logging level of the running bot. Default value is INFO. Setting it as DEBUG will make a lot more messages appear and generated messages will not be sent trough WhatsApp, and will be written on the console instead.
 *LOGGING_FORMAT* and *LOGGING_DATE_FORMAT* to set the format and the date of the log lines.
+
+The D2WBot has BoxCar support. BoxCar is a free inbox for iPhone and Android. If this file is set, the bot will send a notification to your BoxCar inbox in case of a shutdown.
+
+*BOXCAR_USER_CREDENTIALS_FILE* - The file with the user credentials of the boxcar user.
 
 #Disclaimer
 

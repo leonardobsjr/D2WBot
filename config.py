@@ -3,6 +3,9 @@
 import os.path
 import logging
 
+#Name of this Dota2WhatsApp Bot
+INSTANCE_NAME = "D2WBot"
+
 # The file with the Whatsapp Credentials. Two lines, the first one is the login (phone number with country code)
 # and the base64 encoded password
 WHATSAPP_CREDENTIALS = "~/.wcredentials"
@@ -47,6 +50,15 @@ LOGGING_LEVEL = logging.INFO
 LOGGING_FORMAT = '[%(levelname)s][%(asctime)s] %(message)s'
 LOGGING_DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
+#Number of times that the bot will try recover
+NUMBER_OF_RETRIES = 10
+
+#Sleep time between retries in case of error
+TIME_BETWEEN_RETRIES = 60*5
+
+#BoxCar Support - Receive a BoxCar Notification on Bot shutdown.
+BOXCAR_USER_CREDENTIALS_FILE = "~/.boxcar"
+
 class Config(object):
     def __init__(self):
         whatsapp_credentials_file = os.path.expanduser(WHATSAPP_CREDENTIALS)
@@ -62,7 +74,15 @@ class Config(object):
         with open(os.path.expanduser(GROUPS)) as f:
             for i in f.readlines():
                 self.groups.append(i.rstrip("\n"))
+        self.boxcar_user_credentials = None
+        if os.path.isfile(os.path.expanduser(BOXCAR_USER_CREDENTIALS_FILE)):
+            self.boxcar_user_credentials = []
+            with open(os.path.expanduser(BOXCAR_USER_CREDENTIALS_FILE)) as f:
+                for i in f.readlines():
+                    self.boxcar_user_credentials.append(i.rstrip("\n"))
+            self.boxcar_user_credentials = self.boxcar_user_credentials[0]
         self.db_path = DB
+        self.instance_name = INSTANCE_NAME
         self.log_level = LOGGING_LEVEL
         self.log_format = LOGGING_FORMAT
         self.log_date_format = LOGGING_DATE_FORMAT
@@ -75,3 +95,5 @@ class Config(object):
         self.winning_streak_file = WINNING_STREAK_FILE
         self.losing_streak = LOSING_STREAK
         self.losing_streak_file = LOSING_STREAK_FILE
+        self.time_between_retries = TIME_BETWEEN_RETRIES
+        self.number_of_retries = NUMBER_OF_RETRIES
