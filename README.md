@@ -1,4 +1,7 @@
-#Dota 2 Results WhatsApp Bot
+This project has been discontinued. The Yowsup project feels like abandonware, and isn't really reliable.
+
+
+# Dota 2 Results WhatsApp Bot
 
 This is a simple WhatsApp bot that messages contacts the latest matches played by a group of steam id's. The bot can also autodetect if there's two or more of the designated steam id's on a match, and make a proper message. 
 
@@ -45,23 +48,23 @@ The D2WBot has BoxCar support. BoxCar is a free inbox for iPhone and Android. If
 
 *BOXCAR_USER_CREDENTIALS_FILE* - The file with the user credentials of the boxcar user.
 
-#Disclaimer
+# Disclaimer
 
 This piece of software is intended for personal use only. This project couldn’t exist without [WhatsApp](https://www.whatsapp.com/) and the [yowsup](https://github.com/tgalal/yowsup) project from [tgalal](https://github.com/tgalal), [Dota 2](http://www.dota2.com) and the [Dota 2 Wep Api](http://dev.dota2.com/showthread.php?t=47115). 
 
 Special thanks to [veryhappythings](https://github.com/veryhappythings) for the [dotamatch](https://github.com/veryhappythings/dotamatch) project that provides the python bindings to the Dota 2 Web Api.
 
-##License
+## License
 This software  is licensed under the GPLv3+: http://www.gnu.org/licenses/gpl-3.0.html.
 
-##Running the Bot
+## Running the Bot
 
 \> python D2WBot.py 
 
-##To fix the SSH Errors:
+## To fix the SSH Errors:
 
 sudo pip install --upgrade pyopenssl ndg-httpsclient pyasn1 pip
 
-##About not-authorized errors
+## About not-authorized errors
 
-Check your login/password and then the version strings used on Yowsup. For more info, check: https://github.com/tgalal/yowsup/issues/1164
+Check your login/password and then the version strings used on Yowsup. For more info, check: https://github.com/tgalal/yowsup/issues/1164    
